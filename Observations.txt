@@ -1,0 +1,20 @@
+Motion estimation: Analyze the movement of objects between video frames to reduce redundant information.
+Instead of storing complete information for each frame, it stores:
+1. Reference frames = complete frames
+2. Motion vectors = information about how blocks of pixels move between frames
+3. Residual data = differences between the predicted frame and actual frame
+-> This reduces the data needed to represent video (important for compression)
+
+Block Matching Algorithm
+1. The current frame is divided into blocks
+2. For each block, the algorithm searches the previous frame to find the best matching block
+3. It searches all blocks within a search range
+4. The best match is determined by calculating the Mean Absolute Difference (MAD)
+5. Create the predicted frame using best match for each block
+6. Calculate residual frame by subtracting predicted frame from current frame (actual)
+7. Reconstruct current frame
+
+Observations
+- If residual metric < naive residual metric, motion compensation is working
+- As the block size decreases, the residual metric decreases (better motion estimation),
+but the runtime increases
