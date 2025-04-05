@@ -49,8 +49,8 @@
 	"kind" : "codemodel",
 	"paths" : 
 	{
-		"build" : "/Users/charliegil/CLionProjects/420Project/cmake-build-debug",
-		"source" : "/Users/charliegil/CLionProjects/420Project"
+		"build" : "/Users/charliegil/Documents/GitHub/420Project/cmake-build-debug",
+		"source" : "/Users/charliegil/Documents/GitHub/420Project"
 	},
 	"version" : 
 	{

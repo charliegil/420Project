@@ -11,7 +11,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "/Users/charliegil/CLionProjects/420Project/cmake-build-debug"
+			"value" : "/Users/charliegil/Documents/GitHub/420Project/cmake-build-debug"
 		},
 		{
 			"name" : "420Project_IS_TOP_LEVEL",
@@ -35,7 +35,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "/Users/charliegil/CLionProjects/420Project"
+			"value" : "/Users/charliegil/Documents/GitHub/420Project"
 		},
 		{
 			"name" : "CMAKE_ADDR2LINE",
@@ -91,7 +91,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/Users/charliegil/CLionProjects/420Project/cmake-build-debug"
+			"value" : "/Users/charliegil/Documents/GitHub/420Project/cmake-build-debug"
 		},
 		{
 			"name" : "CMAKE_CACHE_MAJOR_VERSION",
@@ -283,10 +283,10 @@
 				},
 				{
 					"name" : "HELPSTRING",
-					"value" : "No help, variable specified on the command line."
+					"value" : "C compiler"
 				}
 			],
-			"type" : "UNINITIALIZED",
+			"type" : "STRING",
 			"value" : "/usr/bin/clang"
 		},
 		{
@@ -515,7 +515,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "/Users/charliegil/CLionProjects/420Project/cmake-build-debug/CMakeFiles/pkgRedirects"
+			"value" : "/Users/charliegil/Documents/GitHub/420Project/cmake-build-debug/CMakeFiles/pkgRedirects"
 		},
 		{
 			"name" : "CMAKE_GENERATOR",
@@ -575,7 +575,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/Users/charliegil/CLionProjects/420Project"
+			"value" : "/Users/charliegil/Documents/GitHub/420Project"
 		},
 		{
 			"name" : "CMAKE_INSTALL_NAME_TOOL",

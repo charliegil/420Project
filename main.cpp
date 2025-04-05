@@ -1,170 +1,114 @@
-// Code to Perform Block Matching
-// Ported from Python to C++
-
 #include <opencv2/opencv.hpp>
-#include <iostream>
-#include <fstream>
-#include <cmath>
-#include <string>
-#include <vector>
-#include <cassert>
-#include <filesystem>
 
 using namespace std;
 
-bool debug = true;
-
-cv::Mat YCrCb2BGR(const cv::Mat& image) {
-    /**
-     * Converts numpy image into from YCrCb to BGR color space
-     */
+// Get luminance of image. 3 values per pixel (R, G, B) -> 1 value per pixel (brightness)
+cv::Mat getLuminance(const cv::Mat& frame) {
     cv::Mat result;
-    cv::cvtColor(image, result, cv::COLOR_BGR2YCrCb);
+    cv::cvtColor(frame, result, cv::COLOR_BGR2YCrCb);
     return result;
 }
 
-cv::Mat BGR2YCrCb(const cv::Mat& image) {
-    /**
-     * Converts numpy image into from BGR to YCrCb color space
-     */
-    cv::Mat result;
-    cv::cvtColor(image, result, cv::COLOR_YCrCb2BGR);
-    return result;
-}
-
-std::pair<int, int> segmentImage(const cv::Mat& anchor, int blockSize = 16) {
-    /**
-     * Determines how many macroblocks an image is composed of
-     * @param anchor: I-Frame
-     * @param blockSize: Size of macroblocks in pixels
-     * @return: number of rows and columns of macroblocks within
-     */
+// Compute number of full blocks along horizontal and vertical axis
+std::pair<int, int> getDimensions(const cv::Mat& anchor, int blockSize = 16) {
     int h = anchor.rows;
     int w = anchor.cols;
-    int hSegments = int(h / blockSize);
-    int wSegments = int(w / blockSize);
-    int totBlocks = int(hSegments * wSegments);
+    int numHorizontal = int(h / blockSize);
+    int numVertical = int(w / blockSize);
 
-    return std::make_pair(hSegments, wSegments);
+    return std::make_pair(numHorizontal, numVertical);
 }
 
+// Determines center coordinate of block of pixels with x, y being coordinate of top left most pixel of block
 std::pair<int, int> getCenter(int x, int y, int blockSize) {
-    /**
-     * Determines center of a block with x, y as top left corner coordinates and blockSize as blockSize
-     * @return: x, y coordinates of center of a block
-     */
     return std::make_pair(int(x + blockSize/2), int(y + blockSize/2));
 }
 
-cv::Mat getAnchorSearchArea(int x, int y, const cv::Mat& anchor, int blockSize, int searchArea) {
-    /**
-     * Returns image of anchor search area
-     * @param x, y: top left coordinate of macroblock in Current Frame
-     * @param anchor: I-Frame
-     * @param blockSize: size of block in pixels
-     * @param searchArea: size of search area in pixels
-     * @return: Image of anchor search area
-     */
-    int h = anchor.rows;
-    int w = anchor.cols;
-    auto [cx, cy] = getCenter(x, y, blockSize);
+// Returns search area (from previous frame) for given block in current frame
+cv::Mat getSearchArea(int x, int y, const cv::Mat& previous, int blockSize, int searchDimension) {
+    int h = previous.rows;
+    int w = previous.cols;
+    auto [cx, cy] = getCenter(x, y, blockSize);  // get center coordinate of this block
 
-    int sx = std::max(0, cx - int(blockSize/2) - searchArea); // ensure search area is in bounds
-    int sy = std::max(0, cy - int(blockSize/2) - searchArea); // and get top left corner of search area
+    int sx = std::max(0, cx - int(blockSize/2) - searchDimension); // ensure search area is in bounds
+    int sy = std::max(0, cy - int(blockSize/2) - searchDimension);
 
-    // slice anchor frame within bounds to produce anchor search area
-    cv::Rect roi(sx, sy,
-                 std::min(sx + searchArea*2 + blockSize, w) - sx,
-                 std::min(sy + searchArea*2 + blockSize, h) - sy);
+    cv::Rect searchArea(sx, sy,
+                 std::min(sx + searchDimension * 2 + blockSize, w) - sx,
+                 std::min(sy + searchDimension * 2 + blockSize, h) - sy);
 
-    return anchor(roi);
+    return previous(searchArea);
 }
 
-cv::Mat getBlockZone(const std::pair<int, int>& p, const cv::Mat& aSearch, const cv::Mat& tBlock, int blockSize) {
-    /**
-     * Retrieves the block searched in the anchor search area to be compared with the macroblock tBlock in the current frame
-     * @param p: x,y coordinates of macroblock center from current frame
-     * @param aSearch: anchor search area image
-     * @param tBlock: macroblock from current frame
-     * @param blockSize: size of macroblock in pixels
-     * @return: macroblock from anchor
-     */
-    int px = p.first;  // coordinates of macroblock center
-    int py = p.second;
-    px = px - int(blockSize/2);  // get top left corner of macroblock
-    py = py - int(blockSize/2);
-    px = std::max(0, px);  // ensure macroblock is within bounds
-    py = std::max(0, py);
+// Get reference to a block inside search area for a given center position
+cv::Mat getBlockZone(const std::pair<int, int>& center, const cv::Mat& searchArea, const cv::Mat& currentBlock, int blockSize) {
+    int x = center.first;  // coordinates of block center
+    int y = center.second;
+    x = x - int(blockSize/2);  // get top left corner of block
+    y = y - int(blockSize/2);
 
-    // Make sure we don't go out of bounds
-    px = std::min(px, aSearch.cols - blockSize);
-    py = std::min(py, aSearch.rows - blockSize);
+    // ensure block is within bounds
+    x = std::max(0, x);
+    y = std::max(0, y);
+    x = std::min(x, searchArea.cols - blockSize);
+    y = std::min(y, searchArea.rows - blockSize);
 
-    // retrieve macroblock from anchor search area
-    cv::Mat aBlock = aSearch(cv::Rect(px, py, blockSize, blockSize));
+    // retrieve block from search area
+    cv::Mat block = searchArea(cv::Rect(x, y, blockSize, blockSize));
 
-    try {
-        assert(aBlock.rows == tBlock.rows && aBlock.cols == tBlock.cols); // must be same shape
-    } catch (const std::exception& e) {
-        std::cerr << e.what() << std::endl;
-        std::cerr << "ERROR - ABLOCK SHAPE: " << aBlock.size() << " != TBLOCK SHAPE: " << tBlock.size() << std::endl;
-    }
-
-    return aBlock;
+    return block;
 }
 
 // Compute Mean Absolute Difference between 2 blocks
-double getMAD(const cv::Mat& tBlock, const cv::Mat& aBlock) {
+double getMAD(const cv::Mat& block1, const cv::Mat& block2) {
     cv::Mat diff;
-    cv::absdiff(tBlock, aBlock, diff);
-    return cv::sum(diff)[0] / (tBlock.rows * tBlock.cols);
+    cv::absdiff(block1, block2, diff);
+    return cv::sum(diff)[0] / (block1.rows * block2.cols);
 }
 
-// TODO replace with full search
-cv::Mat getBestMatch(const cv::Mat& tBlock, const cv::Mat& aSearch, int blockSize) {
-    /**
-     * Implemented 3 Step Search. Read about it here: https://en.wikipedia.org/wiki/Block-matching_algorithm#Three_Step_Search
-     * @param tBlock: macroblock from current frame
-     * @param aSearch: anchor search area
-     * @param blockSize: size of macroblock in pixels
-     * @return: macroblock from anchor search area with least MAD
-     */
+// Return most similar block in search area of previous frame (compared to current block in current frame)
+// https://en.wikipedia.org/wiki/Block-matching_algorithm
+cv::Mat getBestMatch(const cv::Mat& compareBlock, const cv::Mat& searchArea, int blockSize) {
     int step = 4;
-    int ah = aSearch.rows;
-    int aw = aSearch.cols;
-    int acy = int(ah/2);  // get center of anchor search area
-    int acx = int(aw/2);
+    int searchAreaHeight = searchArea.rows;
+    int searchAreaWidth = searchArea.cols;
+    int searchCenterY = int(searchAreaHeight / 2);  // get center of anchor search area
+    int searchCenterX = int(searchAreaWidth / 2);
 
     double minMAD = std::numeric_limits<double>::infinity();
     std::pair<int, int> minP;
 
+    // For each iteration, check 9 points: Center + All neighbouring blocks (in 8 directions)
+    // Start with radius = 4, and reduce until radius = 1
     while (step >= 1) {
         std::vector<std::pair<int, int>> pointList = {
-                {acx, acy},          // p1
-                {acx+step, acy},     // p2
-                {acx, acy+step},     // p3
-                {acx+step, acy+step}, // p4
-                {acx-step, acy},     // p5
-                {acx, acy-step},     // p6
-                {acx-step, acy-step}, // p7
-                {acx+step, acy-step}, // p8
-                {acx-step, acy+step}  // p9
-        };  // retrieve 9 search points
+                {searchCenterX, searchCenterY},  // center
+                {searchCenterX + step, searchCenterY},  // right
+                {searchCenterX, searchCenterY + step},  // up
+                {searchCenterX + step, searchCenterY + step},  // up-right
+                {searchCenterX - step, searchCenterY},  // left
+                {searchCenterX, searchCenterY - step},  //  down
+                {searchCenterX - step, searchCenterY - step},  // down-left
+                {searchCenterX + step, searchCenterY - step},  // down-right
+                {searchCenterX - step, searchCenterY + step}  // up-left
+        };
 
         for (const auto& p : pointList) {
-            cv::Mat aBlock = getBlockZone(p, aSearch, tBlock, blockSize);  // get anchor macroblock
-            double MAD = getMAD(tBlock, aBlock);  // determine MAD
+            cv::Mat block = getBlockZone(p, searchArea, compareBlock, blockSize);  // get block in search area
+            double MAD = getMAD(compareBlock, block);  // determine MAD
             if (MAD < minMAD) {  // store point with minimum MAD
                 minMAD = MAD;
                 minP = p;
             }
         }
 
-        acx = minP.first;
-        acy = minP.second;
+        // Use current best match as center for next iteration of search
+        searchCenterX = minP.first;
+        searchCenterY = minP.second;
         step = int(step/2);
     }
 
+    // Get position of best match block
     int px = minP.first;   // center of anchor block with minimum MAD
     int py = minP.second;
     px = px - int(blockSize / 2);  // get top left corner of minP
@@ -173,45 +117,47 @@ cv::Mat getBestMatch(const cv::Mat& tBlock, const cv::Mat& aSearch, int blockSiz
     py = std::max(0, py);
 
     // Make sure we don't go out of bounds
-    px = std::min(px, aSearch.cols - blockSize);
-    py = std::min(py, aSearch.rows - blockSize);
+    px = std::min(px, searchArea.cols - blockSize);
+    py = std::min(py, searchArea.rows - blockSize);
 
-    // retrieve best macroblock from anchor search area
-    cv::Mat matchBlock = aSearch(cv::Rect(px, py, blockSize, blockSize));
+    // retrieve best block from anchor search area
+    cv::Mat bestMatch = searchArea(cv::Rect(px, py, blockSize, blockSize));
 
-    return matchBlock;
+    return bestMatch;
 }
 
-cv::Mat blockSearchBody(const cv::Mat& anchor, const cv::Mat& target, int blockSize, int searchArea = 7) {
-    int h = anchor.rows;
-    int w = anchor.cols;
-    auto [hSegments, wSegments] = segmentImage(anchor, blockSize);
+// Compute predicted frame by performing block search algorithm within search area for each block in current frame
+cv::Mat blockSearch(const cv::Mat& previous, const cv::Mat& current, int blockSize, int searchDimension = 7) {
+    int h = previous.rows;
+    int w = current.cols;
+    auto [numHorizontal, numVertical] = getDimensions(previous, blockSize);
 
-    cv::Mat predicted = cv::Mat::ones(h, w, anchor.type()) * 255;
+    cv::Mat predicted = cv::Mat::ones(h, w, previous.type()) * 255;  // initialize empty frame
 
-    for (int y = 0; y < int(hSegments*blockSize); y += blockSize) {
-        for (int x = 0; x < int(wSegments*blockSize); x += blockSize) {
-            cv::Mat targetBlock = target(cv::Rect(x, y, blockSize, blockSize));  // get current block in current frame
+    // For each block in current frame
+    for (int y = 0; y < int(numHorizontal * blockSize); y += blockSize) {
+        for (int x = 0; x < int(numVertical * blockSize); x += blockSize) {
+            cv::Mat currentBlock = current(cv::Rect(x, y, blockSize, blockSize));  // get current block in current frame
 
-            cv::Mat anchorSearchArea = getAnchorSearchArea(x, y, anchor, blockSize, searchArea);  // get search area in previous frame
+            cv::Mat searchArea = getSearchArea(x, y, previous, blockSize, searchDimension);  // get search area in previous frame
 
-            cv::Mat anchorBlock = getBestMatch(targetBlock, anchorSearchArea, blockSize);  // get best block match in search area
-            anchorBlock.copyTo(predicted(cv::Rect(x, y, blockSize, blockSize)));  // add anchor block to predicted frame
+            cv::Mat previousBlock = getBestMatch(currentBlock, searchArea, blockSize);  // get best block match in search area
+            previousBlock.copyTo(predicted(cv::Rect(x, y, blockSize, blockSize)));  // add anchor block to predicted frame
         }
     }
 
     return predicted;
 }
 
-// Create residual frame from target frame - predicted frame
+// Create residual frame by subtracting predicted frame from current frame
 cv::Mat getResidual(const cv::Mat& target, const cv::Mat& predicted) {
     cv::Mat residual;
     cv::subtract(target, predicted, residual);
     return residual;
 }
 
-// Reconstruct target frame from residual frame plus predicted frame
-cv::Mat getReconstructTarget(const cv::Mat& residual, const cv::Mat& predicted) {
+// Reconstruct current frame from residual frame plus predicted frame (using motion estimation)
+cv::Mat reconstructCurrent(const cv::Mat& residual, const cv::Mat& predicted) {
     cv::Mat reconstructed;
     cv::add(residual, predicted, reconstructed);
     return reconstructed;
@@ -219,8 +165,9 @@ cv::Mat getReconstructTarget(const cv::Mat& residual, const cv::Mat& predicted) 
 
 // Display images for debugging
 void showImages(const std::vector<cv::Mat>& images) {
+    string imageNames[6] = {"processedPrevious", "processedCurrent", "predictedFrame", "residualFrame", "naiveResidualFrame", "reconstructedCurrentFrame"};
     for (size_t k = 0; k < images.size(); k++) {
-        cv::imshow("Image: " + std::to_string(k), images[k]);
+        cv::imshow(imageNames[k], images[k]);
     }
     cv::waitKey(0);
 }
@@ -232,111 +179,113 @@ double getResidualMetric(const cv::Mat& residualFrame) {
     return cv::sum(absResidual)[0] / (residualFrame.rows * residualFrame.cols);
 }
 
-std::pair<cv::Mat, cv::Mat> preprocess(const cv::Mat& anchor, const cv::Mat& target, int blockSize) {
-    cv::Mat anchorFrame, targetFrame;
+// Get luminance of image and truncate image to match block size
+std::pair<cv::Mat, cv::Mat> preprocess(const cv::Mat& previous, const cv::Mat& current, int blockSize) {
+    cv::Mat previousFrame, currentFrame;
 
-    if (anchor.empty() || target.empty()) {
-        throw std::invalid_argument("Input images cannot be empty");
+    if (previous.empty() || current.empty()) {
+        throw std::invalid_argument("Input images cannot be empty.");
     }
 
-    // Get luminance (using luminance instead of color improves performance)
-    cv::Mat anchorYCrCb = BGR2YCrCb(anchor);
-    cv::Mat targetYCrCb = BGR2YCrCb(target);
+    // Get luminance of image
+    cv::Mat previousLuminance = getLuminance(previous);
+    cv::Mat currentLuminance = getLuminance(current);
 
-    std::vector<cv::Mat> anchorChannels, targetChannels;
-    cv::split(anchorYCrCb, anchorChannels);
-    cv::split(targetYCrCb, targetChannels);
+    // Extract channels
+    std::vector<cv::Mat> previousChannels, currentChannels;
+    cv::split(previousLuminance, previousChannels);
+    cv::split(currentLuminance, currentChannels);
 
-    anchorFrame = anchorChannels[0];
-    targetFrame = targetChannels[0];
+    // Conserve only brightness channel
+    previousFrame  = previousChannels[0];
+    currentFrame = currentChannels[0];
 
-    // Resize frame to fit segmentation
-    auto [hSegments, wSegments] = segmentImage(anchorFrame, blockSize);
-    cv::resize(anchorFrame, anchorFrame, cv::Size(int(wSegments*blockSize), int(hSegments*blockSize)));
-    cv::resize(targetFrame, targetFrame, cv::Size(int(wSegments*blockSize), int(hSegments*blockSize)));
+    // Resize frames to cleanly align with number of blocks
+    auto [numVertical, numHorizontal] = getDimensions(previous, blockSize);
+    cv::resize(previousFrame, previousFrame, cv::Size(int(numHorizontal * blockSize), int(numVertical * blockSize)));
+    cv::resize(currentFrame, currentFrame, cv::Size(int(numHorizontal * blockSize), int(numVertical * blockSize)));
 
-    return std::make_pair(anchorFrame, targetFrame);
+    return make_pair(previousFrame, currentFrame);
 }
 
-std::pair<double, cv::Mat> motionEstimation(const cv::Mat& anchorFrame, const cv::Mat& targetFrame,
-                                const std::string& outfile, bool saveOutput, int blockSize) {
+void motionEstimation(const cv::Mat& previousFrame, const cv::Mat& currentFrame, int blockSize) {
 
-    // Process frames
-    auto [processedAnchorFrame, processedTargetFrame] = preprocess(anchorFrame, targetFrame, blockSize);
+    // Preprocess frames (get luminance of frame and resize to make dimensions divisible by block size)
+    auto [processedPrevious, processedCurrent] = preprocess(previousFrame, currentFrame, blockSize);
 
-    // Compute predicted frame, residual frame, naive residual frame and reconstruct target frame
-    cv::Mat predictedFrame = blockSearchBody(processedAnchorFrame, processedTargetFrame, blockSize);
-    cv::Mat residualFrame = getResidual(processedTargetFrame, predictedFrame);
-    cv::Mat naiveResidualFrame = getResidual(processedAnchorFrame, processedTargetFrame);
-    cv::Mat reconstructTargetFrame = getReconstructTarget(residualFrame, predictedFrame);
-//    showImages({processedTargetFrame, predictedFrame, residualFrame});
+    cv::Mat predictedFrame = blockSearch(processedPrevious, processedCurrent, blockSize);  // compute predicted frame
+    cv::Mat residualFrame = getResidual(processedCurrent, predictedFrame);  // compute residual frame
+    cv::Mat naiveResidualFrame = getResidual(processedPrevious, processedCurrent);  // compute naive residual frame
+    cv::Mat reconstructedCurrentFrame = reconstructCurrent(residualFrame, predictedFrame);  // reconstruct current frame
 
-    // Compute residual metrics
-    double residualMetric = getResidualMetric(residualFrame);
-    double naiveResidualMetric = getResidualMetric(naiveResidualFrame);
+    // Uncomment this line to display predicted, residual and reconstructed
+        showImages({processedPrevious, processedCurrent, predictedFrame, residualFrame, naiveResidualFrame, reconstructedCurrentFrame});
 
-    std::string rmText = "Residual Metric: " + std::to_string(residualMetric);
-    std::string nrmText = "Naive Residual Metric: " + std::to_string(naiveResidualMetric);
+    // Compute residual metrics (difference between generated frame and actual)
+    double residualMetric = getResidualMetric(residualFrame);  // residual metric between predicted and current
+    double naiveResidualMetric = getResidualMetric(naiveResidualFrame);  // residual metric between previous and current without motion estimation
 
-    // Save outputs
-    if (saveOutput) {
-        std::filesystem::create_directories(outfile);
-
-        cv::imwrite(outfile + "/targetFrame.png", processedTargetFrame);
-        cv::imwrite(outfile + "/predictedFrame.png", predictedFrame);
-        cv::imwrite(outfile + "/residualFrame.png", residualFrame);
-        cv::imwrite(outfile + "/reconstructTargetFrame.png", reconstructTargetFrame);
-        cv::imwrite(outfile + "/naiveResidualFrame.png", naiveResidualFrame);
-
-        std::ofstream resultsFile(outfile + "/results.txt");
-        resultsFile << rmText << std::endl << nrmText << std::endl;
-        resultsFile.close();
-    }
-
-    std::cout << rmText << std::endl;
-    std::cout << nrmText << std::endl;
-
-    return std::make_pair(residualMetric, residualFrame);
+    cout << "Residual Metric: " << to_string(residualMetric) << endl;
+    cout << "Naive Residual Metric: " << to_string(naiveResidualMetric) << endl;
 }
 
-int main(int argc, char* argv[]) {
-    /*
-    // Uncomment to run generate test frames
-    cv::VideoCapture cap("/Users/charliegil/CLionProjects/420Project/hands.mp4");
-    if (!cap.isOpened()) {
-        cout << "Error: Cannot open video." << endl;
-        return 1;
+// Generate test frames from video
+void generateFrames() {
+    // Modify this file path to use a different video source
+    cv::VideoCapture video("/Users/charliegil/CLionProjects/420Project/hands.mp4");
+    if (!video.isOpened()) {
+        throw runtime_error("Cannot open video.");
     }
 
+    // Modify this to get different frames of the video
     cv::Mat frame1, frame2, frame3, frame4;
-    cap >> frame1;
-    cap >> frame2;
-    cap >> frame3;
-    cap >> frame4;
+    video >> frame1;
+    video >> frame2;
+    video >> frame3;
+    video >> frame4;
 
-    if (frame1.empty() || frame2.empty()) {
+    if (frame1.empty() || frame2.empty() || frame3.empty() || frame4.empty()) {
         cout << "Error: Could not read frames." << endl;
-        return 1;
+        throw runtime_error("Could not read frames.");
     }
 
+    // Modify these file paths to save images somewhere else
     cv::imwrite("/Users/charliegil/CLionProjects/420Project/frame1.png", frame1);
     cv::imwrite("/Users/charliegil/CLionProjects/420Project/frame2.png", frame2);
     cv::imwrite("/Users/charliegil/CLionProjects/420Project/frame3.png", frame3);
     cv::imwrite("/Users/charliegil/CLionProjects/420Project/frame4.png", frame4);
-     */
+}
+
+int main(int argc, char* argv[]) {
+    // Uncomment to generate test frames from video
+//    try {
+//        generateFrames();
+//    } catch(runtime_error& e) {
+//        cout << e.what() << endl;
+//        return 1;
+//    }
 
     // Compute motion estimation
-    std::string anchorPath = "/Users/charliegil/CLionProjects/420Project/frame1.png";
-    std::string targetPath = "/Users/charliegil/CLionProjects/420Project/frame2.png";
+    string previousPath = "/Users/charliegil/CLionProjects/420Project/frame1.png";
+    string currentPath = "/Users/charliegil/CLionProjects/420Project/frame1.png";
 
-    cv::Mat anchor = cv::imread(anchorPath);
-    cv::Mat target = cv::imread(targetPath);
+    cv::Mat previous = cv::imread(previousPath);
+    cv::Mat current = cv::imread(currentPath);
 
-    if (anchor.empty() || target.empty()) {
+    if (previous.empty() || current.empty()) {
         throw std::runtime_error("Failed to load images");
     }
 
-    motionEstimation(anchor, target, "/Users/charliegil/CLionProjects/420Project/output", false, 8);
+    int blockSize = 16;
+
+    // TODO add file paths (input frames, output) and block size to input args
+
+    auto start = chrono::high_resolution_clock::now();
+    motionEstimation(previous, current, blockSize);
+    auto end = chrono::high_resolution_clock::now();
+
+    chrono::duration<double> duration = end - start;
+    cout << "Runtime: " << duration.count() << " seconds" << endl;
 
     return 0;
 }
