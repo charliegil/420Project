@@ -266,8 +266,8 @@ int main(int argc, char* argv[]) {
 //    }
 
     // Compute motion estimation
-    string previousPath = "/Users/charliegil/CLionProjects/420Project/frame1.png";
-    string currentPath = "/Users/charliegil/CLionProjects/420Project/frame1.png";
+    string previousPath = "./frame1.png";
+    string currentPath = "./frame2.png";
 
     cv::Mat previous = cv::imread(previousPath);
     cv::Mat current = cv::imread(currentPath);
