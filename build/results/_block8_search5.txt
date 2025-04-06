@@ -1,0 +1,10 @@
+Image dimensions:
+  Previous: [640 x 360]
+  Current: [640 x 360]
+Block size: 8 pixels
+Search area size: 5 pixels
+Search algorithm: Three Step Search
+Search Method: Three Step Search
+Residual Metric: 0.656892
+Naive Residual Metric: 3.304323
+Runtime: 0.0280393 seconds

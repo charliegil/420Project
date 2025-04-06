@@ -1,0 +1,10 @@
+Image dimensions:
+  Previous: [640 x 360]
+  Current: [640 x 360]
+Block size: 32 pixels
+Search area size: 9 pixels
+Search algorithm: Diamond Search
+Search Method: Diamond Search
+Residual Metric: 0.825315
+Naive Residual Metric: 3.297164
+Runtime: 0.00358912 seconds

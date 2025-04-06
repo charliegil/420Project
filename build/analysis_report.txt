@@ -1,0 +1,124 @@
+=== COMPREHENSIVE ANALYSIS REPORT ===
+Date: Sat Apr  5 16:40:18 EDT 2025
+
+=== COMPREHENSIVE SUMMARY OF ALL EXPERIMENTS ===
+
+Algorithm | Block Size | Search Area | Residual Metric | Naive Residual Metric | Runtime (s)
+----------|------------|-------------|----------------|----------------------|-------------
+Full Search | 4          | size:       | 0.384974       | Metric:              | 0.753622   
+Full Search | 8          | size:       | 0.464974       | Metric:              | 0.290527   
+Full Search | 8          | size:       | 0.523103       | Metric:              | 0.18625    
+Full Search | 8          | size:       | 0.641432       | Metric:              | 0.103134   
+Full Search | 8          | size:       | 0.930742       | Metric:              | 0.0448189  
+Full Search | 16         | size:       | 0.641415       | Metric:              | 0.117267   
+Full Search | 16         | size:       | 0.651008       | Metric:              | 0.0836692  
+Full Search | 16         | size:       | 0.673921       | Metric:              | 0.0530211  
+Full Search | 16         | size:       | 0.771169       | Metric:              | 0.0295226  
+Full Search | 16         | size:       | 1.018870       | Metric:              | 0.0123955  
+Full Search | 32         | size:       | 0.815479       | Metric:              | 0.0200988  
+Full Search | 32         | size:       | 0.857045       | Metric:              | 0.0127745  
+Full Search | 32         | size:       | 0.938619       | Metric:              | 0.0078705  
+Full Search | 32         | size:       | 1.139387       | Metric:              | 0.00371129 
+Three Step | 4          | size:       | 0.428325       | Metric:              | 0.110188   
+Three Step | 8          | size:       | 0.536975       | Metric:              | 0.0296259  
+Three Step | 8          | size:       | 0.539219       | Metric:              | 0.0277438  
+Three Step | 8          | size:       | 0.656892       | Metric:              | 0.0280393  
+Three Step | 8          | size:       | 0.940825       | Metric:              | 0.0309498  
+Three Step | 16         | size:       | 0.691721       | Metric:              | 0.00850958 
+Three Step | 16         | size:       | 0.697927       | Metric:              | 0.0085545  
+Three Step | 16         | size:       | 0.703192       | Metric:              | 0.00810933 
+Three Step | 16         | size:       | 0.783066       | Metric:              | 0.00851733 
+Three Step | 16         | size:       | 1.025954       | Metric:              | 0.00960613 
+Three Step | 32         | size:       | 0.849680       | Metric:              | 0.0030905  
+Three Step | 32         | size:       | 0.895836       | Metric:              | 0.00268221 
+Three Step | 32         | size:       | 0.940106       | Metric:              | 0.00296337 
+Three Step | 32         | size:       | 1.139768       | Metric:              | 0.00352292 
+
+=== ALGORITHM COMPARISON ===
+
+Three Step Search Algorithm: No data available
+
+Full Search Algorithm:
+  Average Residual Metric: 0.746581
+  Average Runtime: 0.122763 seconds
+
+=== BLOCK SIZE COMPARISON ===
+
+Three Step Search Algorithm:
+Block Size | Residual Metric | Runtime (s) | Speedup vs Full Search
+-----------|----------------|-------------|----------------------
+4 | 0.428325 | 0.110188 | 6.83x
+8 | 0.536975 | 0.0296259 | 6.28x
+16 | 0.691721 | 0.00850958 | 6.23x
+32 | 0.849680 | 0.0030905 | 4.13x
+
+Full Search Algorithm:
+Block Size | Residual Metric | Runtime (s)
+-----------|----------------|-------------
+4 | 0.384974 | 0.753622
+8 | 0.523103 | 0.18625
+16 | 0.673921 | 0.0530211
+32 | 0.857045 | 0.0127745
+
+=== SEARCH AREA COMPARISON ===
+
+Three Step Search Algorithm:
+Search Area | Residual Metric | Runtime (s) | Speedup vs Full Search
+------------|----------------|-------------|----------------------
+3 | 1.025954 | 0.00960613 | 1.29x
+5 | 0.783066 | 0.00851733 | 3.46x
+7 | 0.691721 | 0.00850958 | 6.23x
+9 | 0.697927 | 0.0085545 | 9.78x
+11 | 0.703192 | 0.00810933 | 14.46x
+
+Full Search Algorithm:
+Search Area | Residual Metric | Runtime (s)
+------------|----------------|-------------
+3 | 1.018870 | 0.0123955
+5 | 0.771169 | 0.0295226
+7 | 0.673921 | 0.0530211
+9 | 0.651008 | 0.0836692
+11 | 0.641415 | 0.117267
+
+=== COMBINED PARAMETERS COMPARISON ===
+
+Three Step Search Algorithm:
+Block Size | Search Area | Residual Metric | Runtime (s) | Speedup vs Full Search
+-----------|------------|----------------|-------------|----------------------
+8 | 3 | 0.940825 | 0.0309498 | 1.44x
+8 | 5 | 0.656892 | 0.0280393 | 3.67x
+8 | 9 | 0.539219 | 0.0277438 | 10.47x
+32 | 3 | 1.139768 | 0.00352292 | 1.05x
+32 | 5 | 0.940106 | 0.00296337 | 2.65x
+32 | 9 | 0.895836 | 0.00268221 | 7.49x
+
+Full Search Algorithm:
+Block Size | Search Area | Residual Metric | Runtime (s)
+-----------|------------|----------------|-------------
+8 | 3 | 0.930742 | 0.0448189
+8 | 5 | 0.641432 | 0.103134
+8 | 9 | 0.464974 | 0.290527
+32 | 3 | 1.139387 | 0.00371129
+32 | 5 | 0.938619 | 0.0078705
+32 | 9 | 0.815479 | 0.0200988
+
+=== CONCLUSIONS ===
+
+Best Three Step Search Configuration:
+  Block Size: 4
+  Search Area: size:
+  Residual Metric: 0.428325
+  Runtime: 0.110188 seconds
+
+Best Full Search Configuration:
+  Block Size: 4
+  Search Area: size:
+  Residual Metric: 0.384974
+  Runtime: 0.753622 seconds
+
+Overall Comparison:
+  Three Step Search is 6.83x faster than Full Search
+  Three Step Search residual metric is .043351 higher than Full Search (11.00% difference)
+
+Recommendations:
+  Three Step Search is significantly faster with only a small quality difference. Recommended for real-time applications.

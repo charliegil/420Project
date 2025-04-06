@@ -1,0 +1,3 @@
+Search Method: Full Search
+Residual Metric: 0.703264
+Naive Residual Metric: 5.299336

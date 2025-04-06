@@ -1,0 +1,10 @@
+Image dimensions:
+  Previous: [640 x 360]
+  Current: [640 x 360]
+Block size: 16 pixels
+Search area size: 11 pixels
+Search algorithm: Full Search
+Search Method: Full Search
+Residual Metric: 0.641415
+Naive Residual Metric: 3.297164
+Runtime: 0.128756 seconds
