@@ -26,7 +26,7 @@ cv::Mat getLuminance(const cv::Mat& frame) {
 
 // Compute number of full blocks along horizontal and vertical axis
 std::pair<int, int> getDimensions(const cv::Mat& anchor, int blockSize = 16) {
-    int h = anchor.rows;
+    int h = anchor.rows;image.png
     int w = anchor.cols;
     int numHorizontal = int(h / blockSize);
     int numVertical = int(w / blockSize);
@@ -282,7 +282,7 @@ cv::Mat getDiamondSearchMatch(const cv::Mat& compareBlock, const cv::Mat& search
     px = std::max(0, px);  // ensure minP is within bounds
     py = std::max(0, py);
 
-    // Make sure we don't go out of bounds
+    // Out of bounds check
     px = std::min(px, searchArea.cols - blockSize);
     py = std::min(py, searchArea.rows - blockSize);
 
@@ -399,12 +399,12 @@ void motionEstimation(const cv::Mat& previousFrame, const cv::Mat& currentFrame,
     cout << "Naive residual frame saved to: naive_residual_frame.png" << endl;
     cout << "Reconstructed current frame saved to: reconstructed_current_frame.png" << endl;
 
-    // Display images if requested
+    // Display images if flag
     if (showImagesFlag) {
         showImages({processedPrevious, processedCurrent, predictedFrame, residualFrame, naiveResidualFrame, reconstructedCurrentFrame});
     }
 
-    // Compute residual metrics (difference between generated frame and actual)
+    // Compute residual metrics 
     double residualMetric = getResidualMetric(residualFrame);  // residual metric between predicted and current
     double naiveResidualMetric = getResidualMetric(naiveResidualFrame);  // residual metric between previous and current without motion estimation
 
@@ -426,7 +426,6 @@ int main(int argc, char* argv[]) {
     int searchAreaSize = 7;
     string videoPath = "hands.mp4";
 
-    // Parse command line arguments
     for (int i = 1; i < argc; i++) {
         string arg = argv[i];
         if (arg == "--previous" && i + 1 < argc) {
@@ -464,40 +463,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    // Generate frames from video if requested
-    if (generateFramesFromVideo) {
-        try {
-            // Modify video path
-            cv::VideoCapture video(videoPath);
-            if (!video.isOpened()) {
-                throw runtime_error("Cannot open video: " + videoPath);
-            }
-
-            // Get frames from video
-            cv::Mat frame1, frame2, frame3, frame4;
-            video >> frame1;
-            video >> frame2;
-            video >> frame3;
-            video >> frame4;
-
-            if (frame1.empty() || frame2.empty() || frame3.empty() || frame4.empty()) {
-                cout << "Error: Could not read frames." << endl;
-                throw runtime_error("Could not read frames.");
-            }
-
-            // Save frames
-            cv::imwrite("frame1.png", frame1);
-            cv::imwrite("frame2.png", frame2);
-            cv::imwrite("frame3.png", frame3);
-            cv::imwrite("frame4.png", frame4);
-            
-            cout << "Frames generated successfully." << endl;
-        } catch(runtime_error& e) {
-            cout << e.what() << endl;
-            return 1;
-        }
-    }
-
+   
     // Load frames
     cv::Mat previous = cv::imread(previousPath);
     cv::Mat current = cv::imread(currentPath);

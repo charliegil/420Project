@@ -4,7 +4,13 @@ Image dimensions:
 Block size: 8 pixels
 Search area size: 5 pixels
 Search algorithm: Diamond Search
+Processed previous frame saved to: processed_previous.png
+Processed current frame saved to: processed_current.png
+Predicted frame saved to: predicted_frame.png
+Residual frame saved to: residual_frame.png
+Naive residual frame saved to: naive_residual_frame.png
+Reconstructed current frame saved to: reconstructed_current_frame.png
 Search Method: Diamond Search
-Residual Metric: 0.654223
-Naive Residual Metric: 3.304323
-Runtime: 0.0252669 seconds
+Residual Metric: 4.166411
+Naive Residual Metric: 6.560608
+Runtime: 0.0371438 seconds

@@ -4,7 +4,13 @@ Image dimensions:
 Block size: 32 pixels
 Search area size: 3 pixels
 Search algorithm: Full Search
+Processed previous frame saved to: processed_previous.png
+Processed current frame saved to: processed_current.png
+Predicted frame saved to: predicted_frame.png
+Residual frame saved to: residual_frame.png
+Naive residual frame saved to: naive_residual_frame.png
+Reconstructed current frame saved to: reconstructed_current_frame.png
 Search Method: Full Search
-Residual Metric: 1.139387
-Naive Residual Metric: 3.297164
-Runtime: 0.00454283 seconds
+Residual Metric: 5.443794
+Naive Residual Metric: 6.536341
+Runtime: 0.0113145 seconds
