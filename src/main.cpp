@@ -7,6 +7,7 @@
 #include <cassert>
 #include <filesystem>
 #include <chrono>
+#include <omp.h>
 
 using namespace std;
 
@@ -315,6 +316,30 @@ cv::Mat blockSearch(const cv::Mat& previous, const cv::Mat& current, int blockSi
     return predicted;
 }
 
+// Parallelized: Compute predicted frame by performing block search algorithm within search area for each block in current frame
+cv::Mat blockSearchPara(const cv::Mat& previous, const cv::Mat& current, int blockSize, int searchDimension = 7, bool useFullSearch = false, bool useDiamondSearch = false) {
+    int h = previous.rows;
+    int w = current.cols;
+    auto [numHorizontal, numVertical] = getDimensions(previous, blockSize);
+
+    cv::Mat predicted = cv::Mat::ones(h, w, previous.type()) * 255;  // initialize empty frame
+
+    // Parallelize only the outer loop (block rows)
+    #pragma omp parallel for
+    for (int y = 0; y < int(numHorizontal * blockSize); y += blockSize) {
+        for (int x = 0; x < int(numVertical * blockSize); x += blockSize) {
+            cv::Mat currentBlock = current(cv::Rect(x, y, blockSize, blockSize));
+            cv::Mat searchArea = getSearchArea(x, y, previous, blockSize, searchDimension);
+            cv::Mat previousBlock = getBestMatch(currentBlock, searchArea, blockSize, useFullSearch, useDiamondSearch);
+
+            previousBlock.copyTo(predicted(cv::Rect(x, y, blockSize, blockSize)));
+        }
+    }
+
+    return predicted;
+}
+
+
 // Create residual frame by subtracting predicted frame from current frame
 cv::Mat getResidual(const cv::Mat& target, const cv::Mat& predicted) {
     cv::Mat residual;
@@ -374,12 +399,20 @@ std::pair<cv::Mat, cv::Mat> preprocess(const cv::Mat& previous, const cv::Mat& c
     return make_pair(previousFrame, currentFrame);
 }
 
-void motionEstimation(const cv::Mat& previousFrame, const cv::Mat& currentFrame, int blockSize, bool useFullSearch = false, bool useDiamondSearch = false, bool showImagesFlag = false, int searchAreaSize = 7) {
+void motionEstimation(const cv::Mat& previousFrame, const cv::Mat& currentFrame, int blockSize,
+    bool useFullSearch = false, bool useDiamondSearch = false,
+    bool showImagesFlag = false, int searchAreaSize = 7,
+    bool useParallel = false) {
 
     // Preprocess frames (get luminance of frame and resize to make dimensions divisible by block size)
     auto [processedPrevious, processedCurrent] = preprocess(previousFrame, currentFrame, blockSize);
 
-    cv::Mat predictedFrame = blockSearch(processedPrevious, processedCurrent, blockSize, searchAreaSize, useFullSearch, useDiamondSearch);  // compute predicted frame
+    cv::Mat predictedFrame;
+    if (useParallel == 1) {
+        predictedFrame = blockSearchPara(processedPrevious, processedCurrent, blockSize, searchAreaSize, useFullSearch, useDiamondSearch);
+    } else {
+        predictedFrame = blockSearch(processedPrevious, processedCurrent, blockSize, searchAreaSize, useFullSearch, useDiamondSearch);
+    }
     cv::Mat residualFrame = getResidual(processedCurrent, predictedFrame);  // compute residual frame
     cv::Mat naiveResidualFrame = getResidual(processedPrevious, processedCurrent);  // compute naive residual frame
     cv::Mat reconstructedCurrentFrame = reconstructCurrent(residualFrame, predictedFrame);  // reconstruct current frame
@@ -418,12 +451,13 @@ int main(int argc, char* argv[]) {
     // Default parameters
     string previousPath = "frame1.png";
     string currentPath = "frame2.png";
-    int blockSize = 16;
+    int blockSize = 8;
     bool useFullSearch = false;
     bool useDiamondSearch = false;
     bool generateFramesFromVideo = false;
     bool showImagesFlag = false;
     int searchAreaSize = 7;
+    bool useParallel = true;
     string videoPath = "hands.mp4";
 
     for (int i = 1; i < argc; i++) {
@@ -444,6 +478,8 @@ int main(int argc, char* argv[]) {
             generateFramesFromVideo = true;
         } else if (arg == "--video" && i + 1 < argc) {
             videoPath = argv[++i];
+        } else if (arg == "--parallel") {
+            useParallel = true;
         } else if (arg == "--show-images") {
             showImagesFlag = true;
         } else if (arg == "--help") {
@@ -483,9 +519,12 @@ int main(int argc, char* argv[]) {
     string searchMethod = useFullSearch ? "Full Search" : (useDiamondSearch ? "Diamond Search" : "Three Step Search");
     cout << "Search algorithm: " << searchMethod << endl;
 
+
+    cout << "Threads used: " << omp_get_max_threads() << endl;
+
     // Run motion estimation
     auto start = chrono::high_resolution_clock::now();
-    motionEstimation(previous, current, blockSize, useFullSearch, useDiamondSearch, showImagesFlag, searchAreaSize);
+    motionEstimation(previous, current, blockSize, useFullSearch, useDiamondSearch, showImagesFlag, searchAreaSize, useParallel);
     auto end = chrono::high_resolution_clock::now();
 
     chrono::duration<double> duration = end - start;
