@@ -26,12 +26,12 @@ cv::Mat getLuminance(const cv::Mat& frame) {
 
 // Compute number of full blocks along horizontal and vertical axis
 std::pair<int, int> getDimensions(const cv::Mat& anchor, int blockSize = 16) {
-    int h = anchor.rows;image.png
+    int h = anchor.rows;
     int w = anchor.cols;
-    int numHorizontal = int(h / blockSize);
-    int numVertical = int(w / blockSize);
+    int numVertical = int(h / blockSize);
+    int numHorizontal = int(w / blockSize);
 
-    return std::make_pair(numHorizontal, numVertical);
+    return std::make_pair(numVertical, numHorizontal);
 }
 
 // Determines center coordinate of block of pixels with x, y being coordinate of top left most pixel of block

@@ -63,11 +63,11 @@ CMAKE_BINARY_DIR = /Users/karim/Desktop/University/WINTER25/ECSE420/Project/code
 # Directory level rules for the build root directory
 
 # The main recursive "all" target.
-all: CMakeFiles/420Project.dir/all
+all: CMakeFiles/motion_estimation.dir/all
 .PHONY : all
 
 # The main recursive "codegen" target.
-codegen: CMakeFiles/420Project.dir/codegen
+codegen: CMakeFiles/motion_estimation.dir/codegen
 .PHONY : codegen
 
 # The main recursive "preinstall" target.
@@ -75,40 +75,40 @@ preinstall:
 .PHONY : preinstall
 
 # The main recursive "clean" target.
-clean: CMakeFiles/420Project.dir/clean
+clean: CMakeFiles/motion_estimation.dir/clean
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target CMakeFiles/420Project.dir
+# Target rules for target CMakeFiles/motion_estimation.dir
 
 # All Build rule for target.
-CMakeFiles/420Project.dir/all:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/420Project.dir/build.make CMakeFiles/420Project.dir/depend
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/420Project.dir/build.make CMakeFiles/420Project.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/karim/Desktop/University/WINTER25/ECSE420/Project/code/420Project/build/CMakeFiles --progress-num=1,2 "Built target 420Project"
-.PHONY : CMakeFiles/420Project.dir/all
+CMakeFiles/motion_estimation.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/motion_estimation.dir/build.make CMakeFiles/motion_estimation.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/motion_estimation.dir/build.make CMakeFiles/motion_estimation.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/karim/Desktop/University/WINTER25/ECSE420/Project/code/420Project/build/CMakeFiles --progress-num=1,2 "Built target motion_estimation"
+.PHONY : CMakeFiles/motion_estimation.dir/all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/420Project.dir/rule: cmake_check_build_system
+CMakeFiles/motion_estimation.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/karim/Desktop/University/WINTER25/ECSE420/Project/code/420Project/build/CMakeFiles 2
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/420Project.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/motion_estimation.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/karim/Desktop/University/WINTER25/ECSE420/Project/code/420Project/build/CMakeFiles 0
-.PHONY : CMakeFiles/420Project.dir/rule
+.PHONY : CMakeFiles/motion_estimation.dir/rule
 
 # Convenience name for target.
-420Project: CMakeFiles/420Project.dir/rule
-.PHONY : 420Project
+motion_estimation: CMakeFiles/motion_estimation.dir/rule
+.PHONY : motion_estimation
 
 # codegen rule for target.
-CMakeFiles/420Project.dir/codegen:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/420Project.dir/build.make CMakeFiles/420Project.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/karim/Desktop/University/WINTER25/ECSE420/Project/code/420Project/build/CMakeFiles --progress-num=1,2 "Finished codegen for target 420Project"
-.PHONY : CMakeFiles/420Project.dir/codegen
+CMakeFiles/motion_estimation.dir/codegen:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/motion_estimation.dir/build.make CMakeFiles/motion_estimation.dir/codegen
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/karim/Desktop/University/WINTER25/ECSE420/Project/code/420Project/build/CMakeFiles --progress-num=1,2 "Finished codegen for target motion_estimation"
+.PHONY : CMakeFiles/motion_estimation.dir/codegen
 
 # clean rule for target.
-CMakeFiles/420Project.dir/clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/420Project.dir/build.make CMakeFiles/420Project.dir/clean
-.PHONY : CMakeFiles/420Project.dir/clean
+CMakeFiles/motion_estimation.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/motion_estimation.dir/build.make CMakeFiles/motion_estimation.dir/clean
+.PHONY : CMakeFiles/motion_estimation.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.
