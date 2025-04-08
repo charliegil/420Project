@@ -65,80 +65,46 @@ run_experiment_with_images() {
 # Array to store results for later analysis
 declare -a results
 
-# Run experiments with different block sizes
-echo "=== EXPERIMENTS WITH DIFFERENT BLOCK SIZES ==="
+# Define block sizes (2, 4, 8, 16, 32)
+block_sizes=(2 4 8 16 32)
+
+# Define search areas (3, 14, 25, 36, 50)
+search_areas=(3 14 25 36 50)
+
+# Run experiments with different block sizes and search areas for all algorithms
+echo "=== EXPERIMENTS WITH DIFFERENT BLOCK SIZES AND SEARCH AREAS ==="
 echo ""
 
-# Three Step Search with different block sizes
+# Three Step Search
 echo "--- Three Step Search Algorithm ---"
-for block_size in 4 8 16 32; do
-    results+=($(run_experiment "three_step" $block_size 7))
-done
-
-# Full Search with different block sizes
-echo "--- Full Search Algorithm ---"
-for block_size in 4 8 16 32; do
-    results+=($(run_experiment "full" $block_size 7))
-done
-
-# Diamond Search with different block sizes
-echo "--- Diamond Search Algorithm ---"
-for block_size in 4 8 16 32; do
-    results+=($(run_experiment "diamond" $block_size 7))
-done
-
-# Run experiments with different search areas
-echo "=== EXPERIMENTS WITH DIFFERENT SEARCH AREAS ==="
-echo ""
-
-# Three Step Search with different search areas
-echo "--- Three Step Search Algorithm ---"
-for search_area in 3 5 7 9 11; do
-    results+=($(run_experiment "three_step" 16 $search_area))
-done
-
-# Full Search with different search areas
-echo "--- Full Search Algorithm ---"
-for search_area in 3 5 7 9 11; do
-    results+=($(run_experiment "full" 16 $search_area))
-done
-
-# Diamond Search with different search areas
-echo "--- Diamond Search Algorithm ---"
-for search_area in 3 5 7 9 11; do
-    results+=($(run_experiment "diamond" 16 $search_area))
-done
-
-# Run experiments with combined parameters
-echo "=== EXPERIMENTS WITH COMBINED PARAMETERS ==="
-echo ""
-
-# Three Step Search with combined parameters
-echo "--- Three Step Search Algorithm ---"
-for block_size in 8 32; do
-    for search_area in 3 5 9; do
+for block_size in "${block_sizes[@]}"; do
+    for search_area in "${search_areas[@]}"; do
         results+=($(run_experiment "three_step" $block_size $search_area))
     done
 done
 
-# Full Search with combined parameters
+# Full Search
 echo "--- Full Search Algorithm ---"
-for block_size in 8 32; do
-    for search_area in 3 5 9; do
+for block_size in "${block_sizes[@]}"; do
+    for search_area in "${search_areas[@]}"; do
         results+=($(run_experiment "full" $block_size $search_area))
     done
 done
 
-# Diamond Search with combined parameters
+# Diamond Search
 echo "--- Diamond Search Algorithm ---"
-for block_size in 8 32; do
-    for search_area in 3 5 9; do
+for block_size in "${block_sizes[@]}"; do
+    for search_area in "${search_areas[@]}"; do
         results+=($(run_experiment "diamond" $block_size $search_area))
     done
 done
 
-echo "All experiments completed. Results saved in the results directory."
-echo "Run analyze_results.sh to generate a comprehensive analysis report."
+# Run analyze_results.sh to generate a report
+echo "=== GENERATING ANALYSIS REPORT ==="
+./scripts/experiments/analyze_results.sh
+
+echo "All experiments completed. Check the results directory for detailed output files."
+echo "Analysis report has been generated."
 
 # Handle command line arguments for showing images
 if [ "$1" == "show_images" ]; then

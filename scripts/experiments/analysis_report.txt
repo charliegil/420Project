@@ -1,0 +1,88 @@
+=== MOTION ESTIMATION ALGORITHM ANALYSIS ===
+
+=== OVERALL ALGORITHM COMPARISON ===
+
+Three Step Search:
+  Average Residual Metric: 0
+  Average Runtime: 0 seconds
+
+Full Search:
+  Average Residual Metric: 0
+  Average Runtime: 0 seconds
+
+Diamond Search:
+  Average Residual Metric: 0
+  Average Runtime: 0 seconds
+
+
+=== BLOCK SIZE COMPARISON ===
+
+Three Step Search Algorithm:
+Block Size | Residual Metric | Runtime (s) | Speedup vs Full Search
+-----------|----------------|-------------|----------------------
+
+Full Search Algorithm:
+Block Size | Residual Metric | Runtime (s)
+-----------|----------------|-------------
+
+Diamond Search Algorithm:
+Block Size | Residual Metric | Runtime (s) | Speedup vs Full Search
+-----------|----------------|-------------|----------------------
+
+=== SEARCH AREA COMPARISON ===
+
+Three Step Search Algorithm:
+Search Area | Residual Metric | Runtime (s) | Speedup vs Full Search
+------------|----------------|-------------|----------------------
+
+Full Search Algorithm:
+Search Area | Residual Metric | Runtime (s)
+------------|----------------|-------------
+
+Diamond Search Algorithm:
+Search Area | Residual Metric | Runtime (s) | Speedup vs Full Search
+------------|----------------|-------------|----------------------
+
+=== COMBINED PARAMETERS COMPARISON ===
+
+Three Step Search Algorithm:
+Block Size | Search Area | Residual Metric | Runtime (s) | Speedup vs Full Search
+-----------|------------|----------------|-------------|----------------------
+
+Full Search Algorithm:
+Block Size | Search Area | Residual Metric | Runtime (s)
+-----------|------------|----------------|-------------
+
+Diamond Search Algorithm:
+Block Size | Search Area | Residual Metric | Runtime (s) | Speedup vs Full Search
+-----------|------------|----------------|-------------|----------------------
+
+=== CONCLUSIONS ===
+
+Best Three Step Search Configuration:
+  Block Size: 0
+  Search Area: size: 0
+  Residual Metric: 999999
+  Runtime: 999999 seconds
+
+Best Full Search Configuration:
+  Block Size: 0
+  Search Area: size: 0
+  Residual Metric: 999999
+  Runtime: 999999 seconds
+
+Best Diamond Search Configuration:
+  Block Size: 0
+  Search Area: size: 0
+  Residual Metric: 999999
+  Runtime: 999999 seconds
+
+
+=== RECOMMENDATIONS ===
+
+1. For real-time applications:
+   Use Diamond Search with block size 0 and search area size: 0
+2. For high-quality applications:
+   Use Full Search with block size 0 and search area size: 0
+3. For a good balance between speed and quality:
+   Use Diamond Search with block size 0 and search area size: 0

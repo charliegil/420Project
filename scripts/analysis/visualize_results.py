@@ -3,153 +3,220 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import os
+import seaborn as sns
+import glob
 
-# Check if results.csv exists
-if not os.path.exists('results.csv'):
-    print("Error: results.csv not found. Please run analyze_results.sh first.")
-    exit(1)
+def get_project_root():
+    return os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Read the CSV file
-df = pd.read_csv('results.csv')
+# Read all result files
+def read_result_files():
+    results = []
+    project_root = get_project_root()
+    result_files = glob.glob(os.path.join(project_root, 'results', '*.txt'))
+    
+    if not result_files:
+        print("Error: No result files found in the results directory.")
+        return None
+    
+    for file in result_files:
+        try:
+            with open(file, 'r') as f:
+                content = f.readlines()
+                
+            # Extract information from filename
+            filename = os.path.basename(file)
+            parts = filename.replace('.txt', '').split('_')
+            
+            # Handle "three_step" algorithm name
+            if parts[0] == 'three':
+                algorithm = 'three_step'
+                block_size = int(parts[2].replace('block', ''))
+                search_area = int(parts[3].replace('search', ''))
+            else:
+                algorithm = parts[0]
+                block_size = int(parts[1].replace('block', ''))
+                search_area = int(parts[2].replace('search', ''))
+            
+            # Extract metrics
+            residual_metric = float([line for line in content if 'Residual Metric:' in line][0].split(':')[1].strip())
+            naive_residual = float([line for line in content if 'Naive Residual Metric:' in line][0].split(':')[1].strip())
+            runtime = float([line for line in content if 'Runtime:' in line][0].split(':')[1].strip().replace(' seconds', ''))
+            
+            results.append({
+                'Algorithm': algorithm,
+                'Block Size': block_size,
+                'Search Area': search_area,
+                'Residual Metric': residual_metric,
+                'Naive Residual Metric': naive_residual,
+                'Runtime (s)': runtime
+            })
+        except Exception as e:
+            print(f"Error processing {file}: {str(e)}")
+            continue
+    
+    return pd.DataFrame(results)
 
-# Create a figure with multiple subplots
-plt.figure(figsize=(15, 10))
+def generate_algorithm_specific_plots(df, results_dir):
+    # Create directory for algorithm-specific plots
+    algo_dir = os.path.join(results_dir, 'algorithm_analysis')
+    os.makedirs(algo_dir, exist_ok=True)
+    
+    # Set style
+    plt.style.use('default')
+    
+    # For each algorithm
+    for algo in df['Algorithm'].unique():
+        algo_data = df[df['Algorithm'] == algo]
+        
+        # 1. Search Area vs Residual Metric for different block sizes
+        plt.figure(figsize=(12, 6))
+        for block_size in sorted(algo_data['Block Size'].unique()):
+            block_data = algo_data[algo_data['Block Size'] == block_size]
+            plt.plot(block_data['Search Area'], block_data['Residual Metric'], 
+                    marker='o', label=f'Block Size {block_size}')
+        
+        plt.title(f'Search Area vs Residual Metric - {algo.capitalize()} Search')
+        plt.xlabel('Search Area')
+        plt.ylabel('Residual Metric')
+        plt.legend()
+        plt.grid(True)
+        plt.savefig(os.path.join(algo_dir, f'{algo}_search_area_effect.png'))
+        plt.close()
+        
+        # 2. Block Size vs Residual Metric for different search areas
+        plt.figure(figsize=(12, 6))
+        for search_area in sorted(algo_data['Search Area'].unique()):
+            search_data = algo_data[algo_data['Search Area'] == search_area]
+            plt.plot(search_data['Block Size'], search_data['Residual Metric'], 
+                    marker='o', label=f'Search Area {search_area}')
+        
+        plt.title(f'Block Size vs Residual Metric - {algo.capitalize()} Search')
+        plt.xlabel('Block Size')
+        plt.ylabel('Residual Metric')
+        plt.legend()
+        plt.grid(True)
+        plt.savefig(os.path.join(algo_dir, f'{algo}_block_size_effect.png'))
+        plt.close()
+        
+        # 3. Runtime vs Quality scatter plot
+        plt.figure(figsize=(12, 6))
+        scatter = plt.scatter(algo_data['Runtime (s)'], algo_data['Residual Metric'],
+                            c=algo_data['Block Size'], cmap='viridis',
+                            s=algo_data['Search Area']*20)
+        plt.colorbar(scatter, label='Block Size')
+        plt.title(f'Runtime vs Quality - {algo.capitalize()} Search\n(Point size = Search Area)')
+        plt.xlabel('Runtime (s)')
+        plt.ylabel('Residual Metric')
+        plt.xscale('log')
+        plt.grid(True)
+        plt.savefig(os.path.join(algo_dir, f'{algo}_runtime_quality.png'))
+        plt.close()
+        
+        # 4. Heatmap of Residual Metric
+        pivot_table = algo_data.pivot_table(
+            values='Residual Metric',
+            index='Block Size',
+            columns='Search Area',
+            aggfunc='mean'
+        )
+        plt.figure(figsize=(12, 8))
+        sns.heatmap(pivot_table, annot=True, cmap='YlOrRd', fmt='.2f')
+        plt.title(f'Residual Metric Heatmap - {algo.capitalize()} Search')
+        plt.savefig(os.path.join(algo_dir, f'{algo}_heatmap.png'))
+        plt.close()
 
-# 1. Block Size Comparison
-plt.subplot(2, 2, 1)
-for algo in df['Algorithm'].unique():
-    algo_data = df[df['Algorithm'] == algo]
-    plt.plot(algo_data['Block Size'], algo_data['Residual Metric'], marker='o', label=algo)
-plt.xlabel('Block Size')
-plt.ylabel('Residual Metric')
-plt.title('Residual Metric vs Block Size')
-plt.legend()
-plt.grid(True)
+def generate_comparison_plots(df, results_dir):
+    # Create directory for comparison plots
+    comp_dir = os.path.join(results_dir, 'comparison_analysis')
+    os.makedirs(comp_dir, exist_ok=True)
+    
+    # Set style
+    plt.style.use('default')
+    
+    # 1. Search Area effect comparison
+    plt.figure(figsize=(15, 8))
+    for algo in df['Algorithm'].unique():
+        algo_data = df[df['Algorithm'] == algo]
+        mean_residual = algo_data.groupby('Search Area')['Residual Metric'].mean()
+        plt.plot(mean_residual.index, mean_residual.values, marker='o', label=algo)
+    
+    plt.title('Average Residual Metric vs Search Area by Algorithm')
+    plt.xlabel('Search Area')
+    plt.ylabel('Average Residual Metric')
+    plt.legend()
+    plt.grid(True)
+    plt.savefig(os.path.join(comp_dir, 'search_area_comparison.png'))
+    plt.close()
+    
+    # 2. Block Size effect comparison
+    plt.figure(figsize=(15, 8))
+    for algo in df['Algorithm'].unique():
+        algo_data = df[df['Algorithm'] == algo]
+        mean_residual = algo_data.groupby('Block Size')['Residual Metric'].mean()
+        plt.plot(mean_residual.index, mean_residual.values, marker='o', label=algo)
+    
+    plt.title('Average Residual Metric vs Block Size by Algorithm')
+    plt.xlabel('Block Size')
+    plt.ylabel('Average Residual Metric')
+    plt.legend()
+    plt.grid(True)
+    plt.savefig(os.path.join(comp_dir, 'block_size_comparison.png'))
+    plt.close()
+    
+    # 3. Runtime-Quality trade-off comparison
+    plt.figure(figsize=(15, 8))
+    for algo in df['Algorithm'].unique():
+        algo_data = df[df['Algorithm'] == algo]
+        plt.scatter(algo_data['Runtime (s)'], algo_data['Residual Metric'],
+                   label=algo, alpha=0.6)
+    
+    plt.title('Runtime vs Quality Trade-off by Algorithm')
+    plt.xlabel('Runtime (s)')
+    plt.ylabel('Residual Metric')
+    plt.xscale('log')
+    plt.legend()
+    plt.grid(True)
+    plt.savefig(os.path.join(comp_dir, 'runtime_quality_comparison.png'))
+    plt.close()
 
-# 2. Runtime vs Block Size
-plt.subplot(2, 2, 2)
-for algo in df['Algorithm'].unique():
-    algo_data = df[df['Algorithm'] == algo]
-    plt.plot(algo_data['Block Size'], algo_data['Runtime (s)'], marker='o', label=algo)
-plt.xlabel('Block Size')
-plt.ylabel('Runtime (s)')
-plt.title('Runtime vs Block Size')
-plt.legend()
-plt.grid(True)
+def main():
+    # Get project root and results directory
+    project_root = get_project_root()
+    results_dir = os.path.join(project_root, 'results')
+    
+    # Create results directory if it doesn't exist
+    os.makedirs(results_dir, exist_ok=True)
+    
+    # Read and process data
+    print("Reading result files...")
+    df = read_result_files()
+    
+    if df is None:
+        return
+    
+    print(f"Processed {len(df)} result files")
+    
+    # Generate visualizations
+    print("Generating visualizations...")
+    generate_algorithm_specific_plots(df, results_dir)
+    generate_comparison_plots(df, results_dir)
+    
+    # Save comprehensive CSV
+    print("Saving comprehensive results...")
+    df.to_csv(os.path.join(results_dir, 'comprehensive_results.csv'), index=False)
+    
+    print("\nAnalysis complete. Results saved to:")
+    print("1. algorithm_analysis/ - Algorithm-specific visualizations")
+    print("   - {algorithm}_search_area_effect.png")
+    print("   - {algorithm}_block_size_effect.png")
+    print("   - {algorithm}_runtime_quality.png")
+    print("   - {algorithm}_heatmap.png")
+    print("2. comparison_analysis/ - Cross-algorithm comparisons")
+    print("   - search_area_comparison.png")
+    print("   - block_size_comparison.png")
+    print("   - runtime_quality_comparison.png")
+    print("3. comprehensive_results.csv - Complete dataset")
 
-# 3. Search Area Comparison
-plt.subplot(2, 2, 3)
-for algo in df['Algorithm'].unique():
-    algo_data = df[df['Algorithm'] == algo]
-    plt.plot(algo_data['Search Area'], algo_data['Residual Metric'], marker='o', label=algo)
-plt.xlabel('Search Area')
-plt.ylabel('Residual Metric')
-plt.title('Residual Metric vs Search Area')
-plt.legend()
-plt.grid(True)
-
-# 4. Runtime vs Search Area
-plt.subplot(2, 2, 4)
-for algo in df['Algorithm'].unique():
-    algo_data = df[df['Algorithm'] == algo]
-    plt.plot(algo_data['Search Area'], algo_data['Runtime (s)'], marker='o', label=algo)
-plt.xlabel('Search Area')
-plt.ylabel('Runtime (s)')
-plt.title('Runtime vs Search Area')
-plt.legend()
-plt.grid(True)
-
-plt.tight_layout()
-plt.savefig('motion_estimation_results.png')
-print("Visualization saved as motion_estimation_results.png")
-
-# Create a second figure for speedup analysis
-plt.figure(figsize=(12, 8))
-
-# Calculate speedup for each configuration
-three_step_data = df[df['Algorithm'] == 'Three Step Search']
-full_search_data = df[df['Algorithm'] == 'Full Search']
-
-# Merge the dataframes on Block Size and Search Area
-merged_data = pd.merge(three_step_data, full_search_data, 
-                      on=['Block Size', 'Search Area'], 
-                      suffixes=('_three_step', '_full_search'))
-
-# Calculate speedup
-merged_data['Speedup'] = merged_data['Runtime (s)_full_search'] / merged_data['Runtime (s)_three_step']
-
-# Plot speedup vs block size
-plt.subplot(1, 2, 1)
-for search_area in merged_data['Search Area'].unique():
-    area_data = merged_data[merged_data['Search Area'] == search_area]
-    plt.plot(area_data['Block Size'], area_data['Speedup'], marker='o', label=f'Search Area: {search_area}')
-plt.xlabel('Block Size')
-plt.ylabel('Speedup (Full Search / Three Step Search)')
-plt.title('Speedup vs Block Size')
-plt.legend()
-plt.grid(True)
-
-# Plot speedup vs search area
-plt.subplot(1, 2, 2)
-for block_size in merged_data['Block Size'].unique():
-    size_data = merged_data[merged_data['Block Size'] == block_size]
-    plt.plot(size_data['Search Area'], size_data['Speedup'], marker='o', label=f'Block Size: {block_size}')
-plt.xlabel('Search Area')
-plt.ylabel('Speedup (Full Search / Three Step Search)')
-plt.title('Speedup vs Search Area')
-plt.legend()
-plt.grid(True)
-
-plt.tight_layout()
-plt.savefig('speedup_analysis.png')
-print("Speedup analysis saved as speedup_analysis.png")
-
-# Create a third figure for quality comparison
-plt.figure(figsize=(12, 8))
-
-# Calculate quality difference
-merged_data['Quality_Diff'] = merged_data['Residual Metric_three_step'] - merged_data['Residual Metric_full_search']
-merged_data['Quality_Diff_Percent'] = (merged_data['Quality_Diff'] / merged_data['Residual Metric_full_search']) * 100
-
-# Plot quality difference vs block size
-plt.subplot(1, 2, 1)
-for search_area in merged_data['Search Area'].unique():
-    area_data = merged_data[merged_data['Search Area'] == search_area]
-    plt.plot(area_data['Block Size'], area_data['Quality_Diff_Percent'], marker='o', label=f'Search Area: {search_area}')
-plt.xlabel('Block Size')
-plt.ylabel('Quality Difference (%)')
-plt.title('Quality Difference vs Block Size')
-plt.legend()
-plt.grid(True)
-
-# Plot quality difference vs search area
-plt.subplot(1, 2, 2)
-for block_size in merged_data['Block Size'].unique():
-    size_data = merged_data[merged_data['Block Size'] == block_size]
-    plt.plot(size_data['Search Area'], size_data['Quality_Diff_Percent'], marker='o', label=f'Block Size: {block_size}')
-plt.xlabel('Search Area')
-plt.ylabel('Quality Difference (%)')
-plt.title('Quality Difference vs Search Area')
-plt.legend()
-plt.grid(True)
-
-plt.tight_layout()
-plt.savefig('quality_comparison.png')
-print("Quality comparison saved as quality_comparison.png")
-
-# Print summary statistics
-print("\nSummary Statistics:")
-print(f"Average Speedup: {merged_data['Speedup'].mean():.2f}x")
-print(f"Average Quality Difference: {merged_data['Quality_Diff_Percent'].mean():.2f}%")
-print(f"Best Configuration (Three Step Search):")
-best_three_step = three_step_data.loc[three_step_data['Residual Metric'].idxmin()]
-print(f"  Block Size: {best_three_step['Block Size']}")
-print(f"  Search Area: {best_three_step['Search Area']}")
-print(f"  Residual Metric: {best_three_step['Residual Metric']:.6f}")
-print(f"  Runtime: {best_three_step['Runtime (s)']:.6f} seconds")
-print(f"Best Configuration (Full Search):")
-best_full_search = full_search_data.loc[full_search_data['Residual Metric'].idxmin()]
-print(f"  Block Size: {best_full_search['Block Size']}")
-print(f"  Search Area: {best_full_search['Search Area']}")
-print(f"  Residual Metric: {best_full_search['Residual Metric']:.6f}")
-print(f"  Runtime: {best_full_search['Runtime (s)']:.6f} seconds") 
+if __name__ == "__main__":
+    main() 

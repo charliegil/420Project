@@ -17,14 +17,14 @@ cv::Mat getThreeStepSearchMatch(const cv::Mat& compareBlock, const cv::Mat& sear
 cv::Mat getFullSearchMatch(const cv::Mat& compareBlock, const cv::Mat& searchArea, int blockSize);
 cv::Mat getDiamondSearchMatch(const cv::Mat& compareBlock, const cv::Mat& searchArea, int blockSize);
 
-// Get luminance of image. 3 values per pixel (R, G, B) -> 1 value per pixel (brightness)
+// Get luminance (brightness) from RGB
 cv::Mat getLuminance(const cv::Mat& frame) {
     cv::Mat result;
     cv::cvtColor(frame, result, cv::COLOR_BGR2YCrCb);
     return result;
 }
 
-// Compute number of full blocks along horizontal and vertical axis
+// Get block dimensions
 std::pair<int, int> getDimensions(const cv::Mat& anchor, int blockSize = 16) {
     int h = anchor.rows;
     int w = anchor.cols;
@@ -34,12 +34,12 @@ std::pair<int, int> getDimensions(const cv::Mat& anchor, int blockSize = 16) {
     return std::make_pair(numVertical, numHorizontal);
 }
 
-// Determines center coordinate of block of pixels with x, y being coordinate of top left most pixel of block
+// Get center of block
 std::pair<int, int> getCenter(int x, int y, int blockSize) {
     return std::make_pair(int(x + blockSize/2), int(y + blockSize/2));
 }
 
-// Returns search area (from previous frame) for given block in current frame
+// Get search area from previous frame
 cv::Mat getSearchArea(int x, int y, const cv::Mat& previous, int blockSize, int searchDimension) {
     int h = previous.rows;
     int w = previous.cols;
@@ -55,9 +55,9 @@ cv::Mat getSearchArea(int x, int y, const cv::Mat& previous, int blockSize, int 
     return previous(searchArea);
 }
 
-// Get reference to a block inside search area for a given center position
+// Get block from search area
 cv::Mat getBlockZone(const std::pair<int, int>& center, const cv::Mat& searchArea, const cv::Mat& currentBlock, int blockSize) {
-    int x = center.first;  // coordinates of block center
+    int x = center.first;
     int y = center.second;
     x = x - int(blockSize/2);  // get top left corner of block
     y = y - int(blockSize/2);
@@ -74,7 +74,7 @@ cv::Mat getBlockZone(const std::pair<int, int>& center, const cv::Mat& searchAre
     return block;
 }
 
-// Compute Mean Absolute Difference between 2 blocks
+// Calculate MAD between blocks
 double getMAD(const cv::Mat& block1, const cv::Mat& block2) {
     cv::Mat diff;
     cv::absdiff(block1, block2, diff);
@@ -379,12 +379,12 @@ void motionEstimation(const cv::Mat& previousFrame, const cv::Mat& currentFrame,
     // Preprocess frames (get luminance of frame and resize to make dimensions divisible by block size)
     auto [processedPrevious, processedCurrent] = preprocess(previousFrame, currentFrame, blockSize);
 
-    cv::Mat predictedFrame = blockSearch(processedPrevious, processedCurrent, blockSize, searchAreaSize, useFullSearch, useDiamondSearch);  // compute predicted frame
-    cv::Mat residualFrame = getResidual(processedCurrent, predictedFrame);  // compute residual frame
-    cv::Mat naiveResidualFrame = getResidual(processedPrevious, processedCurrent);  // compute naive residual frame
-    cv::Mat reconstructedCurrentFrame = reconstructCurrent(residualFrame, predictedFrame);  // reconstruct current frame
+    cv::Mat predictedFrame = blockSearch(processedPrevious, processedCurrent, blockSize, searchAreaSize, useFullSearch, useDiamondSearch);
+    cv::Mat residualFrame = getResidual(processedCurrent, predictedFrame);
+    cv::Mat naiveResidualFrame = getResidual(processedPrevious, processedCurrent);
+    cv::Mat reconstructedCurrentFrame = reconstructCurrent(residualFrame, predictedFrame);
 
-    // Save output images
+    // Save outputs
     cv::imwrite("processed_previous.png", processedPrevious);
     cv::imwrite("processed_current.png", processedCurrent);
     cv::imwrite("predicted_frame.png", predictedFrame);
@@ -392,26 +392,24 @@ void motionEstimation(const cv::Mat& previousFrame, const cv::Mat& currentFrame,
     cv::imwrite("naive_residual_frame.png", naiveResidualFrame);
     cv::imwrite("reconstructed_current_frame.png", reconstructedCurrentFrame);
     
-    cout << "Processed previous frame saved to: processed_previous.png" << endl;
-    cout << "Processed current frame saved to: processed_current.png" << endl;
-    cout << "Predicted frame saved to: predicted_frame.png" << endl;
-    cout << "Residual frame saved to: residual_frame.png" << endl;
-    cout << "Naive residual frame saved to: naive_residual_frame.png" << endl;
-    cout << "Reconstructed current frame saved to: reconstructed_current_frame.png" << endl;
+    cout << "Saved: processed_previous.png" << endl;
+    cout << "Saved: processed_current.png" << endl;
+    cout << "Saved: predicted_frame.png" << endl;
+    cout << "Saved: residual_frame.png" << endl;
+    cout << "Saved: naive_residual_frame.png" << endl;
+    cout << "Saved: reconstructed_current_frame.png" << endl;
 
-    // Display images if flag
     if (showImagesFlag) {
         showImages({processedPrevious, processedCurrent, predictedFrame, residualFrame, naiveResidualFrame, reconstructedCurrentFrame});
     }
 
-    // Compute residual metrics 
-    double residualMetric = getResidualMetric(residualFrame);  // residual metric between predicted and current
-    double naiveResidualMetric = getResidualMetric(naiveResidualFrame);  // residual metric between previous and current without motion estimation
+    double residualMetric = getResidualMetric(residualFrame);
+    double naiveResidualMetric = getResidualMetric(naiveResidualFrame);
 
     string searchMethod = useFullSearch ? "Full Search" : (useDiamondSearch ? "Diamond Search" : "Three Step Search");
-    cout << "Search Method: " << searchMethod << endl;
-    cout << "Residual Metric: " << to_string(residualMetric) << endl;
-    cout << "Naive Residual Metric: " << to_string(naiveResidualMetric) << endl;
+    cout << "Method: " << searchMethod << endl;
+    cout << "Residual: " << to_string(residualMetric) << endl;
+    cout << "Naive Residual: " << to_string(naiveResidualMetric) << endl;
 }
 
 int main(int argc, char* argv[]) {

@@ -13,4 +13,4 @@ Reconstructed current frame saved to: reconstructed_current_frame.png
 Search Method: Full Search
 Residual Metric: 5.110312
 Naive Residual Metric: 6.536341
-Runtime: 0.0208178 seconds
+Runtime: 0.0209252 seconds

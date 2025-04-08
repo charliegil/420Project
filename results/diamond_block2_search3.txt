@@ -1,0 +1,16 @@
+Image dimensions:
+  Previous: [640 x 360]
+  Current: [640 x 360]
+Block size: 2 pixels
+Search area size: 3 pixels
+Search algorithm: Diamond Search
+Processed previous frame saved to: processed_previous.png
+Processed current frame saved to: processed_current.png
+Predicted frame saved to: predicted_frame.png
+Residual frame saved to: residual_frame.png
+Naive residual frame saved to: naive_residual_frame.png
+Reconstructed current frame saved to: reconstructed_current_frame.png
+Search Method: Diamond Search
+Residual Metric: 4.501419
+Naive Residual Metric: 6.560608
+Runtime: 0.291433 seconds

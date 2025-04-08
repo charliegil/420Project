@@ -13,4 +13,4 @@ Reconstructed current frame saved to: reconstructed_current_frame.png
 Search Method: Diamond Search
 Residual Metric: 4.830130
 Naive Residual Metric: 6.560608
-Runtime: 0.0302035 seconds
+Runtime: 0.0323765 seconds

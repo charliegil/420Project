@@ -3,20 +3,20 @@
 === OVERALL ALGORITHM COMPARISON ===
 
 Three Step Search:
-  Average Residual Metric: 4.387148
-  Average Runtime: .027902 seconds
+  Average Residual Metric: 4.477352
+  Average Runtime: .094258 seconds
 
 Full Search:
-  Average Residual Metric: 4.204818
-  Average Runtime: .134490 seconds
+  Average Residual Metric: 2.777946
+  Average Runtime: 9.543347 seconds
 
 Diamond Search:
-  Average Residual Metric: 4.465554
-  Average Runtime: .027255 seconds
+  Average Residual Metric: 4.483893
+  Average Runtime: .086571 seconds
 
-Three Step Search is 4.82x faster than Full Search
-Diamond Search is 4.93x faster than Full Search
-Diamond Search is 1.02x faster than Three Step Search
+Three Step Search is 101.24x faster than Full Search
+Diamond Search is 110.23x faster than Full Search
+Diamond Search is 1.08x faster than Three Step Search
 
 === BLOCK SIZE COMPARISON ===
 
@@ -49,7 +49,7 @@ Block Size | Residual Metric | Runtime (s) | Speedup vs Full Search
 Three Step Search Algorithm:
 Search Area | Residual Metric | Runtime (s) | Speedup vs Full Search
 ------------|----------------|-------------|----------------------
-3 | 5.110223 | 0.0159409 | 1.30x
+3 | 5.110223 | 0.0182052 | 1.14x
 5 | 4.544811 | 0.0163729 | 2.34x
 7 | 4.093009 | 0.0163583 | 3.53x
 9 | 4.102339 | 0.0166585 | 5.51x
@@ -58,7 +58,7 @@ Search Area | Residual Metric | Runtime (s) | Speedup vs Full Search
 Full Search Algorithm:
 Search Area | Residual Metric | Runtime (s)
 ------------|----------------|-------------
-3 | 5.110312 | 0.0208178
+3 | 5.110312 | 0.0209252
 5 | 4.543493 | 0.0384045
 7 | 4.036603 | 0.0577671
 9 | 3.641770 | 0.0919133
@@ -67,7 +67,7 @@ Search Area | Residual Metric | Runtime (s)
 Diamond Search Algorithm:
 Search Area | Residual Metric | Runtime (s) | Speedup vs Full Search
 ------------|----------------|-------------|----------------------
-3 | 5.113747 | 0.015244 | 1.36x
+3 | 5.113747 | 0.0153735 | 1.36x
 5 | 4.564653 | 0.0160545 | 2.39x
 7 | 4.296897 | 0.0167404 | 3.45x
 9 | 4.142134 | 0.0170025 | 5.40x
@@ -78,62 +78,62 @@ Search Area | Residual Metric | Runtime (s) | Speedup vs Full Search
 Three Step Search Algorithm:
 Block Size | Search Area | Residual Metric | Runtime (s) | Speedup vs Full Search
 -----------|------------|----------------|-------------|----------------------
-8 | 3 | 4.823503 | 0.0382146 | 1.35x
+8 | 3 | 4.823503 | 0.0374678 | 1.54x
 8 | 5 | 4.121372 | 0.0372825 | 3.71x
 8 | 9 | 3.645065 | 0.0353542 | 9.02x
-32 | 3 | 5.443058 | 0.0100999 | 1.12x
+32 | 3 | 5.443058 | 0.010367 | 1.11x
 32 | 5 | 5.037953 | 0.0104273 | 1.43x
 32 | 9 | 4.737074 | 0.0101796 | 2.65x
 
 Full Search Algorithm:
 Block Size | Search Area | Residual Metric | Runtime (s)
 -----------|------------|----------------|-------------
-8 | 3 | 4.822170 | 0.0517874
+8 | 3 | 4.822170 | 0.0580739
 8 | 5 | 4.111810 | 0.138624
 8 | 9 | 3.141502 | 0.319106
-32 | 3 | 5.443794 | 0.0113145
+32 | 3 | 5.443794 | 0.0116103
 32 | 5 | 5.037402 | 0.0150067
 32 | 9 | 4.251563 | 0.0270609
 
 Diamond Search Algorithm:
 Block Size | Search Area | Residual Metric | Runtime (s) | Speedup vs Full Search
 -----------|------------|----------------|-------------|----------------------
-8 | 3 | 4.830130 | 0.0302035 | 1.71x
+8 | 3 | 4.830130 | 0.0323765 | 1.79x
 8 | 5 | 4.166411 | 0.0371438 | 3.73x
 8 | 9 | 3.743867 | 0.0396946 | 8.03x
-32 | 3 | 5.443377 | 0.0100198 | 1.12x
+32 | 3 | 5.443377 | 0.0111372 | 1.04x
 32 | 5 | 5.049370 | 0.0103133 | 1.45x
 32 | 9 | 4.740665 | 0.010564 | 2.56x
 
 === CONCLUSIONS ===
 
 Best Three Step Search Configuration:
-  Block Size: 4
-  Search Area: size: 7
-  Residual Metric: 3.372391
-  Runtime: 0.11896 seconds
+  Block Size: 2
+  Search Area: size: 14
+  Residual Metric: 3.267044
+  Runtime: 0.430135 seconds
 
 Best Full Search Configuration:
-  Block Size: 8
-  Search Area: size: 9
-  Residual Metric: 3.141502
-  Runtime: 0.319106 seconds
+  Block Size: 2
+  Search Area: size: 50
+  Residual Metric: 0.216341
+  Runtime: 136.688 seconds
 
 Best Diamond Search Configuration:
   Block Size: 4
-  Search Area: size: 7
-  Residual Metric: 3.672609
-  Runtime: 0.109506 seconds
+  Search Area: size: 14
+  Residual Metric: 3.489874
+  Runtime: 0.113496 seconds
 
-Overall Speedup: Three Step Search is 4.82x faster than Full Search
-Overall Speedup: Diamond Search is 4.93x faster than Full Search
-Overall Speedup: Diamond Search is 1.02x faster than Three Step Search
+Overall Speedup: Three Step Search is 101.24x faster than Full Search
+Overall Speedup: Diamond Search is 110.23x faster than Full Search
+Overall Speedup: Diamond Search is 1.08x faster than Three Step Search
 
 === RECOMMENDATIONS ===
 
 1. For real-time applications:
-   Use Diamond Search with block size 4 and search area size: 7
+   Use Diamond Search with block size 4 and search area size: 14
 2. For high-quality applications:
-   Use Full Search with block size 8 and search area size: 9
+   Use Full Search with block size 2 and search area size: 50
 3. For a good balance between speed and quality:
-   Use Diamond Search with block size 4 and search area size: 7
+   Use Diamond Search with block size 4 and search area size: 14
