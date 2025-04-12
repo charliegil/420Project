@@ -44,19 +44,48 @@ This project implements and compares different motion estimation algorithms for 
 
 ## Building the Project
 
-1. Create a build directory:
+1. Install OpenCV if not already installed:
 ```bash
-mkdir build && cd build
+# On macOS with Homebrew:
+brew install opencv
+
+# On Ubuntu/Debian:
+sudo apt-get install libopencv-dev
 ```
 
-2. Configure and build:
+2. Install required Python packages:
 ```bash
+pip install pandas matplotlib numpy
+```
+
+3. Build the project:
+```bash
+# Remove any existing build directory
+rm -rf build
+
+# Create and enter build directory
+mkdir build
+cd build
+
+# Configure with CMake
 cmake ..
+
+# Build the project
 make
 ```
 
-## Running the Program
+If you encounter any errors during the build process:
+1. Make sure OpenCV is properly installed
+2. Check that CMake can find OpenCV:
+```bash
+pkg-config --modversion opencv4
+```
+3. If OpenCV is not found, you may need to set the OpenCV_DIR environment variable:
+```bash
+export OpenCV_DIR=/path/to/opencv/build
+```
 
+## Running the Program
 
 ### Running Experiments
 
