@@ -1,3 +1,26 @@
+# Build directories
+build/
+cmake-build-debug/
+
+# IDE files
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+
+# Temporary files
+*.png
+*.csv
+*.txt
+!CMakeLists.txt
+!README.md
+!docs/*.md
+
+# Results directory (except README)
+results/*
+!results/README.md
+
 scripts/video
 scripts/video_utils
-results/videos
