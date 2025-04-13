@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Get the project root directory
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+
 # Create results directory if it doesn't exist
 mkdir -p results
 
@@ -23,12 +26,28 @@ run_experiment() {
     fi
     
     # Run the experiment and save output to file
-    ./build/420Project --previous frame1.png --current frame2.png --block-size $block_size --search-area $search_area $search_flag > $output_file
+    "$PROJECT_ROOT/build/motion_estimation" \
+        --previous "$PROJECT_ROOT/data/frames/frame1.png" \
+        --current "$PROJECT_ROOT/data/frames/frame2.png" \
+        --block-size $block_size \
+        --search-area $search_area \
+        $search_flag > "$output_file" 2>&1
     
     # Extract key metrics from the output file
-    local residual_metric=$(grep "Residual Metric:" $output_file | awk '{print $3}')
-    local naive_residual_metric=$(grep "Naive Residual Metric:" $output_file | awk '{print $4}')
-    local runtime=$(grep "Runtime:" $output_file | awk '{print $2}')
+    local residual_metric=$(grep "Residual Metric:" "$output_file" | awk '{print $3}')
+    local naive_residual_metric=$(grep "Naive Residual Metric:" "$output_file" | awk '{print $4}')
+    local runtime=$(grep "Runtime:" "$output_file" | awk '{print $2}')
+    
+    # If metrics are not found, try alternative patterns
+    if [ -z "$residual_metric" ]; then
+        residual_metric=$(grep "residual metric:" "$output_file" | awk '{print $3}')
+    fi
+    if [ -z "$naive_residual_metric" ]; then
+        naive_residual_metric=$(grep "naive residual metric:" "$output_file" | awk '{print $4}')
+    fi
+    if [ -z "$runtime" ]; then
+        runtime=$(grep "runtime:" "$output_file" | awk '{print $2}')
+    fi
     
     # Print results to console
     echo "  Residual Metric: $residual_metric"
@@ -36,8 +55,10 @@ run_experiment() {
     echo "  Runtime: $runtime seconds"
     echo ""
     
-    # Return the metrics for later analysis
-    echo "$residual_metric $naive_residual_metric $runtime"
+    # Print the full output for debugging
+    echo "Full output:"
+    cat "$output_file"
+    echo ""
 }
 
 # Function to run an experiment with image display
@@ -59,19 +80,19 @@ run_experiment_with_images() {
         search_flag="--diamond-search"
     fi
     
-    ./build/420Project --previous frame1.png --current frame2.png --block-size $block_size --search-area $search_area $search_flag --show-images
+    "$PROJECT_ROOT/build/motion_estimation" \
+        --previous "$PROJECT_ROOT/data/frames/frame1.png" \
+        --current "$PROJECT_ROOT/data/frames/frame2.png" \
+        --block-size $block_size \
+        --search-area $search_area \
+        $search_flag \
+        --show-images
 }
 
-# Array to store results for later analysis
-declare -a results
-
-# Define block sizes (2, 4, 8, 16, 32)
+# Define block sizes and search areas
 block_sizes=(2 4 8 16 32)
+search_areas=(3 14 25 36 42)
 
-# Define search areas (3, 14, 25, 36, 50)
-search_areas=(3 14 25 36 50)
-
-# Run experiments with different block sizes and search areas for all algorithms
 echo "=== EXPERIMENTS WITH DIFFERENT BLOCK SIZES AND SEARCH AREAS ==="
 echo ""
 
@@ -79,7 +100,7 @@ echo ""
 echo "--- Three Step Search Algorithm ---"
 for block_size in "${block_sizes[@]}"; do
     for search_area in "${search_areas[@]}"; do
-        results+=($(run_experiment "three_step" $block_size $search_area))
+        run_experiment "three_step" $block_size $search_area
     done
 done
 
@@ -87,7 +108,7 @@ done
 echo "--- Full Search Algorithm ---"
 for block_size in "${block_sizes[@]}"; do
     for search_area in "${search_areas[@]}"; do
-        results+=($(run_experiment "full" $block_size $search_area))
+        run_experiment "full" $block_size $search_area
     done
 done
 
@@ -95,13 +116,13 @@ done
 echo "--- Diamond Search Algorithm ---"
 for block_size in "${block_sizes[@]}"; do
     for search_area in "${search_areas[@]}"; do
-        results+=($(run_experiment "diamond" $block_size $search_area))
+        run_experiment "diamond" $block_size $search_area
     done
 done
 
 # Run analyze_results.sh to generate a report
 echo "=== GENERATING ANALYSIS REPORT ==="
-./scripts/experiments/analyze_results.sh
+"$PROJECT_ROOT/scripts/experiments/analyze_results.sh"
 
 echo "All experiments completed. Check the results directory for detailed output files."
 echo "Analysis report has been generated."

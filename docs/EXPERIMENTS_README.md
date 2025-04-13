@@ -75,32 +75,3 @@ This script displays the images for a specific configuration.
 ./view_images.sh diamond 8 7
 ```
 
-## Metrics Measured
-
-The experiments measure the following metrics:
-
-1. **Residual Metric**: Measures the difference between the predicted frame and the current frame. Lower values indicate better quality.
-2. **Naive Residual Metric**: Measures the difference between the previous frame and the current frame (without motion estimation). This serves as a baseline.
-3. **Runtime**: The time taken to perform the motion estimation in seconds.
-
-## Key Findings
-
-1. **Block Size Impact**:
-   - Smaller block sizes (4, 8) provide better quality but are slower
-   - Larger block sizes (16, 32) are faster but may miss fine details
-
-2. **Search Area Impact**:
-   - Larger search areas can find more distant matches but increase computation time
-   - The impact is more significant for Full Search than Three Step Search or Diamond Search
-
-3. **Algorithm Comparison**:
-   - Three Step Search is significantly faster (4-14x) than Full Search
-   - Diamond Search is faster than Full Search and often faster than Three Step Search
-   - Full Search provides slightly better quality (lower residual metric)
-   - Diamond Search offers a good balance between speed and quality
-
-## Recommendations
-
-- For real-time applications: Use Diamond Search or Three Step Search with block size 16 and search area 7
-- For high-quality applications: Use Full Search with block size 8 and search area 9
-- For a good balance: Use Diamond Search with block size 8 and search area 7 

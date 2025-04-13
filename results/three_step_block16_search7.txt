@@ -13,4 +13,4 @@ Saved: reconstructed_current_frame.png
 Method: Three Step Search
 Residual: 0.691721
 Naive Residual: 3.297164
-Runtime: 0.0176135 seconds
+Runtime: 0.0149815 seconds

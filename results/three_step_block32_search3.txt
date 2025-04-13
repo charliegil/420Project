@@ -4,13 +4,13 @@ Image dimensions:
 Block size: 32 pixels
 Search area size: 3 pixels
 Search algorithm: Three Step Search
-Processed previous frame saved to: processed_previous.png
-Processed current frame saved to: processed_current.png
-Predicted frame saved to: predicted_frame.png
-Residual frame saved to: residual_frame.png
-Naive residual frame saved to: naive_residual_frame.png
-Reconstructed current frame saved to: reconstructed_current_frame.png
-Search Method: Three Step Search
-Residual Metric: 5.443058
-Naive Residual Metric: 6.536341
-Runtime: 0.010367 seconds
+Saved: processed_previous.png
+Saved: processed_current.png
+Saved: predicted_frame.png
+Saved: residual_frame.png
+Saved: naive_residual_frame.png
+Saved: reconstructed_current_frame.png
+Method: Three Step Search
+Residual: 1.139768
+Naive Residual: 3.297164
+Runtime: 0.0117961 seconds
